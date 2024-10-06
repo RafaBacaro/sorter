@@ -13,8 +13,6 @@ const FileUploader = () => {
   const [file, setFile] = useState<File | null>(null);
   let sortedFileContent: any[] = [];
   let sortedFileChild: any[] = [];
-  let lastSortedParent: string = "";
-  //let translatedFileChild: { key: string; value: any; }[] = [];
   const [jsonContent, setJsonContent] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,7 +42,6 @@ const FileUploader = () => {
 
   const handleUpload = async () => {
     if (file) {
-      console.log("Uploading file...");
       try {
         const reader = new FileReader();
         reader.onload = async function (e) {
@@ -54,11 +51,10 @@ const FileUploader = () => {
 
           if (jsonObj) {
             sortObject(jsonObj).then(() => {
-                const a = Object.fromEntries(sortedFileContent.map(b => [b['key'],b['value']]));
-                //TODO not printing the childs obj
-                
-              setJsonContent(JSON.stringify(a));
-              //setJsonContent(mapped.toString());
+                //TODO make a re-sort file possible
+                //TODO make a sort from the editor, without uploaded file
+              const mappedArray = mapArrayToJson(sortedFileContent);
+              setJsonContent(JSON.stringify(mappedArray, null, 2));
             });
           }
         };
@@ -67,6 +63,10 @@ const FileUploader = () => {
         console.error(e);
       }
     }
+  };
+
+  const mapArrayToJson = (arr: any[]) => {
+    return Object.fromEntries(arr.map((item) => [item["key"], item["value"]]));
   };
 
   //TODO find a API to translate or use libreTranslator
@@ -92,40 +92,16 @@ const FileUploader = () => {
   const sortObject = async (jsonObj: any, parent?: any) => {
     let keys = Object.entries(jsonObj);
     let sortedKeys = await sort(keys);
-    /* if (parent !== lastSortedParent) {
-            const l = Object.fromEntries(
-                Object.entries(jsonObj).sort(
-                    ([k1, v1], [k2]) => {
-                        if (v1 && typeof v1 !== 'string') {
-                            sortObject(v1, k1);
-                        }
-                        return k1.localeCompare(k2);
-                    })
-            );
-            if (parent) {
-                sortedFileChild.push(l);
-                lastSortedParent = parent;
-            } else {
-                sortedFileContent.push(l);
-                if (lastSortedParent !== '') {
-                    sortedFileContent[0][lastSortedParent] = sortedFileChild[0];
-                    console.log('s')
-                }
-            }
-        } */
-
     for (let [index, [key, value]] of sortedKeys.entries()) {
       if (value && typeof value === "string") {
         if (parent) {
-          //sortedFileChild.push(`${key}": "${value}`);
-          sortedFileChild.push({key, value});
+          sortedFileChild.push({ key, value });
           if (parent !== key && sortedKeys.length === index + 1) {
-            //sortedFileContent.push(`${parent}": "${sortedFileChild}`);
-            sortedFileContent.push({key:parent, sortedFileChild});
+            const mappedChildArray = mapArrayToJson(sortedFileChild);
+            sortedFileContent.push({ key: parent, value: mappedChildArray });
           }
         } else {
-          //sortedFileContent.push(`${key}": "${value}`);
-          sortedFileContent.push({key, value});
+          sortedFileContent.push({ key, value });
         }
       } else {
         sortedFileChild = [];
@@ -133,7 +109,6 @@ const FileUploader = () => {
         await sortObject(value, key);
       }
     }
-
   };
 
   const sort = async (obj: any) => {
@@ -149,11 +124,8 @@ const FileUploader = () => {
   const monaco = useMonaco();
 
   useEffect(() => {
-    // do conditional chaining
     monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
-    // or make sure that it exists by other ways
     if (monaco) {
-      console.log("here is the monaco instance:", monaco);
     }
   }, [monaco]);
 
