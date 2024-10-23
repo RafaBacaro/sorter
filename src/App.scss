@@ -1,0 +1,14 @@
+.spinner-container {
+  width: 120vh;
+  height: 70vh;
+  position: absolute;
+  background-color: white;
+  z-index: 2;
+
+  .div-spinner {
+    position: absolute;
+    top: 31vh;
+    z-index: 2;
+    left: 56vh;
+  }
+}
