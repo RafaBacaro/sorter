@@ -9,7 +9,7 @@ import "primeicons/primeicons.css";
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
-import { DiffEditor, Editor, useMonaco } from "@monaco-editor/react";
+import { DiffEditor, useMonaco } from "@monaco-editor/react";
 import { ProgressSpinner } from 'primereact/progressspinner';
 
 const FileUploader = () => {
