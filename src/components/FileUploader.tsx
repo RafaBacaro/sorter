@@ -9,17 +9,19 @@ import "primeicons/primeicons.css";
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
-import { Editor, useMonaco } from "@monaco-editor/react";
+import { DiffEditor, Editor, useMonaco } from "@monaco-editor/react";
 import { ProgressSpinner } from 'primereact/progressspinner';
 
 const FileUploader = () => {
     let sortedFileContent: any[] = [];
     let sortedFileChild: any[] = [];
     let parentNode: any;
-    const [jsonContent, setJsonContent] = useState("");
+    const [jsonContentMain, setJsonContentMain] = useState("");
+    const [jsonContentCompare, setJsonContentCompare] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const hiddenFileInput = useRef<HTMLInputElement>(null);
+    const hiddenFileMainInput = useRef<HTMLInputElement>(null);
+    const hiddenFileCompareInput = useRef<HTMLInputElement>(null);
     const toast = useRef(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,8 +32,9 @@ const FileUploader = () => {
                     const reader = new FileReader();
                     reader.onload = async function (e) {
                         const jsonStr = e.target?.result ? e.target?.result : "";
-                        setJsonContent(jsonStr.toString());
+                        //setJsonContentMain(jsonStr.toString());
                         showMessage('File was uploaded successfully', 'Success', toast, 'success');
+                        handleSortContent(jsonStr.toString(), 'main');
                     };
                     reader.readAsText(e.target.files[0]);
                 } catch (e: any) {
@@ -41,10 +44,35 @@ const FileUploader = () => {
         }
     };
 
-    const handleUploadClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleFileChangeCompare = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0].type === "application/json") {
+            if (e.target.files[0]) {
+                try {
+                    const reader = new FileReader();
+                    reader.onload = async function (e) {
+                        const jsonStr = e.target?.result ? e.target?.result : "";
+                        //setJsonContentCompare(jsonStr.toString());
+                        showMessage('File was uploaded successfully', 'Success', toast, 'success');
+                        handleSortContent(jsonStr.toString(), '');
+                    };
+                    reader.readAsText(e.target.files[0]);
+                } catch (e: any) {
+                    showMessage('Error trying to sort content', e['message'], toast, 'error');
+                }
+            }
+        }
+    };
+
+    const handleUploadClickMain = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        if (!hiddenFileInput?.current) return;
-        hiddenFileInput.current.click();
+        if (!hiddenFileMainInput?.current) return;
+        hiddenFileMainInput.current.click();
+    }
+
+    const handleUploadClickCompare = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        if (!hiddenFileCompareInput?.current) return;
+        hiddenFileCompareInput.current.click();
     }
 
     /* const sendFileToTranslate = async (fileToTranslate: any) => {
@@ -66,16 +94,21 @@ const FileUploader = () => {
           }
       } */
 
-    const handleSortContent = async () => {
+    const handleSortContent = async (obj: string, whichJson: string) => {
         try {
-            const jsonObj = JSON.parse(jsonContent);
             sortedFileContent = [];
+            let jsonObj: any;
+            jsonObj = JSON.parse(obj);
 
             if (jsonObj) {
                 setLoading(true);
                 sortObject(jsonObj).then(() => {
                     const mappedArray = mapArrayToJson(sortedFileContent);
-                    setJsonContent(JSON.stringify(mappedArray, null, 2));
+                    if (whichJson === 'main') {
+                        setJsonContentMain(JSON.stringify(mappedArray, null, 2));
+                    } else {
+                        setJsonContentCompare(JSON.stringify(mappedArray, null, 2));
+                    }
                     setLoading(false);
                     showMessage('Content was successfully sorted', 'Success', toast, 'success');
                 });
@@ -93,7 +126,7 @@ const FileUploader = () => {
 
     const handleEditorChange = (value: string | undefined) => {
         if (value) {
-            setJsonContent(value);
+            setJsonContentMain(value);
         }
     }
 
@@ -121,7 +154,7 @@ const FileUploader = () => {
         let keys = Object.entries(jsonObj);
         let sortedKeys = await sort(keys);
         for (let [index, [key, value]] of sortedKeys.entries()) {
-            if (value && typeof value === "string") {
+            if (value && typeof value === "string" || value === '') {
                 if (parentNode) {
                     sortedFileChild.push({ key, value });
                     if (parentNode !== key && sortedKeys.length === index + 1) {
@@ -159,7 +192,7 @@ const FileUploader = () => {
 
     useEffect(() => {
         monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
-    }, [monaco, jsonContent, handleEditorChange]);
+    }, [monaco, jsonContentMain, handleEditorChange]);
 
     return (
         <div className="flex flex-auto flex-column align-items-center w-full">
@@ -167,21 +200,38 @@ const FileUploader = () => {
                 <div className="input-group flex flex-row align-items-center justify-content-evenly w-full">
                     <div>
                         <Button
-                            label="Upload file"
+                            label="Upload left content"
                             icon="pi pi-upload"
-                            onClick={handleUploadClick}
+                            onClick={handleUploadClickMain}
                             severity="secondary"
                         />
                         <input id="file" type="file" onChange={handleFileChange}
-                            style={{ display: 'none' }} ref={hiddenFileInput} />
+                            style={{ display: 'none' }} ref={hiddenFileMainInput} />
                     </div>
-                    <div className="card flex justify-content-center">
-                        <Button disabled={!jsonContent} raised
-                            label="Sort file"
+                    {/* <div className="card flex justify-content-center">
+                        <Button disabled={!jsonContentMain} raised
+                            label="Sort Left content" tooltip="Content is sorted when upload! Use this to re-sort content after changes"
                             icon="pi pi-sort-alpha-up"
-                            onClick={handleSortContent}
+                            onClick={() => handleSortContent(jsonContentMain, '')}
                         />
+                    </div> */}
+                    <div>
+                        <Button
+                            label="Upload right content"
+                            icon="pi pi-upload"
+                            onClick={handleUploadClickCompare}
+                            severity="secondary"
+                        />
+                        <input id="file" type="file" onChange={handleFileChangeCompare}
+                            style={{ display: 'none' }} ref={hiddenFileCompareInput} />
                     </div>
+                    {/* <div className="card flex justify-content-center">
+                        <Button disabled={!jsonContentCompare} raised
+                            label="Sort right content" tooltip="Content is sorted when upload! Use this to re-sort content after changes"
+                            icon="pi pi-sort-alpha-up"
+                            onClick={() => handleSortContent(jsonContentCompare, '')}
+                        />
+                    </div> */}
                 </div>
                 <div>
                     <label>
@@ -192,17 +242,29 @@ const FileUploader = () => {
                                 </div>
                             </div>
                         }
-                        <Editor
+                        {/* <Editor
                             height="70vh"
                             width="120vh"
                             theme="vs-dark"
                             defaultLanguage="json"
                             defaultValue="No file uploaded"
-                            value={jsonContent}
+                            value={jsonContentMain}
                             onChange={handleEditorChange}
                             options={{
                                 readOnly: false,
                                 wordWrap: "bounded",
+                            }}
+                        /> */}
+                        <DiffEditor
+                            height="70vh"
+                            width="160vh"
+                            theme="vs-dark"
+                            language="json"
+                            original={jsonContentMain}
+                            modified={jsonContentCompare}
+                            options={{
+                                originalEditable: true,
+                                readOnly: false
                             }}
                         />
                     </label>

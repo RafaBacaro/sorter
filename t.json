@@ -1,25 +1,30 @@
 {
-    
-   
-    "bcp-details.title": "Border Control Point",
-    "configuration.title": "System configuration",
-    "configuration.appConfig": "User Applications",
-    "configuration.frontConfig": "Border Configuration",
-    "sidebar.menu.label": "Actions menu",
-    "ui-face-pod": {
-        "defaultLanguage": "Default language",
-        "supportedLanguages": "Supported languages",
-        "supportedLanguageDescription": "Supported languages examples: (en: English, ar: Arabic, es: Spanish), translation json file must be provided/exist in assets-service",
-		 "defaultLanguageDescription": "Default languages must be one of the supported languages and it should be on ISO format"
+    "bcp-details.title": "",
+    "configuration.title": "",
+    "configuration.appConfig": "",
+    "configuration.frontConfig": "",
+    "sidebar.menu.label": "",
+    "ui-f-p": {
+        "defaultLanguage": "",
+        "supportedLanguages": " languages",
+        "supportedLanguageDescription": " languages examp",
+        "defaultLanguageDescription": " should be on ISO "
     },
-	"bcp-details.no-groups": "no groups found",
-	"app.title.tag": "Border Administration",
-    "main.bcp.label": "Border Control Point",
+    "bcp-details.no-groups": "no groups found",
+    "app.title.tag": "",
+    "main.bfdcp.label": "",
     "test": {
-        "here":"dsada",
+        "here": "dsada",
         "i": "eeee",
         "a": "dsa"
+    },
+    "test1": {
+        "here": "dsada",
+        "i": "eeee",
+        "test": {
+            "here": "dsada",
+            "i": "eeee",
+            "a": "dsa"
+        }
     }
 }
-
-
